@@ -11,12 +11,12 @@ class StartScene extends Phaser.Scene {
         this.load.image("button_quit", "assets/img/button_quit.png");
         this.load.image("text_title", "assets/img/text_title.png");
 
-        // Load mouse click sound effect
+        // Load button sound effects
         this.load.audio("buttonSound", "assets/mp3/Wooden Button Click Sound Effect.mp3");
     }
 
     create() {
-        // Add background image
+        // Add background
         this.add.image(0, 0, "bg").setOrigin(0, 0);
 
         // Add game title image
@@ -28,12 +28,11 @@ class StartScene extends Phaser.Scene {
         let yOffset = 250;
         let buttonSpacing = 100;
 
-        // Function to darken button on hover
+        // Add hover effects
         function darkenButton(button) {
             button.setTint(0x828282);
         }
 
-        // Function to restore button color
         function restoreButton(button) {
             button.clearTint();
         }
@@ -44,7 +43,7 @@ class StartScene extends Phaser.Scene {
         creditsButton.setOrigin(1.75, -1.05);
         creditsButton.setInteractive();
 
-        // Hover effects
+        // Add hover effects
         creditsButton.on("pointerover", () => {
             darkenButton(creditsButton);
         });
@@ -54,7 +53,7 @@ class StartScene extends Phaser.Scene {
         });
 
         creditsButton.on("pointerup", () => {
-            this.sound.play("buttonSound"); // Play mouse click sound effect
+            this.sound.play("buttonSound");
             this.scene.start('CreditsScene');
         });
 
@@ -64,7 +63,7 @@ class StartScene extends Phaser.Scene {
         playButton.setOrigin(0.5, 0);
         playButton.setInteractive();
 
-        // Hover effects
+        // Add hover effects
         playButton.on("pointerover", () => {
             darkenButton(playButton);
         });
@@ -74,7 +73,8 @@ class StartScene extends Phaser.Scene {
         });
 
         playButton.on("pointerup", () => {
-            this.sound.play("buttonSound"); // Play mouse click sound effect
+            this.sound.play("buttonSound"); 
+            this.scene.stop('GameScene');
             this.scene.start('GameScene');
         });
 
@@ -84,7 +84,7 @@ class StartScene extends Phaser.Scene {
         quitButton.setOrigin(-0.75, 1.05);
         quitButton.setInteractive();
 
-        // Hover effects
+        // Add hover effects
         quitButton.on("pointerover", () => {
             darkenButton(quitButton);
         });
@@ -94,8 +94,8 @@ class StartScene extends Phaser.Scene {
         });
 
         quitButton.on("pointerup", () => {
-            this.sound.play("buttonSound"); 
-            window.close();
+            this.sound.play("buttonSound");
+            alert("You have exited the game!");
         });
     }
 }
@@ -110,12 +110,12 @@ class CreditsScene extends Phaser.Scene {
         this.load.image("bg", "assets/img/bg.png");
         this.load.image("button_back", "assets/img/button_back.png");
 
-        // Load mouse click sound effect
+        // Load button sound effect
         this.load.audio("buttonSound", "assets/mp3/Wooden Button Click Sound Effect.mp3");
     }
 
     create() {
-        // Background
+        // Add background
         let bg = this.add.image(0, 0, "bg").setOrigin(0);
         let tintOverlay = this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x000000, 0.75);
         tintOverlay.setOrigin(0);
@@ -135,7 +135,7 @@ class CreditsScene extends Phaser.Scene {
         backButton.setOrigin(0.5, 1);
         backButton.setInteractive();
 
-        // Add hover
+        // Add hover effects
         function darkenButton(button) {
             button.setTint(0x828282);
         }
@@ -144,7 +144,7 @@ class CreditsScene extends Phaser.Scene {
             button.clearTint();
         }
 
-        // Hover effects for back button
+        // Hover effects
         backButton.on("pointerover", () => {
             darkenButton(backButton);
         });
@@ -154,7 +154,7 @@ class CreditsScene extends Phaser.Scene {
         });
 
         backButton.on("pointerup", () => {
-            this.sound.play("buttonSound"); // Play mouse click sound effect
+            this.sound.play("buttonSound");
             this.scene.start('StartScene');
         });
     }
@@ -163,6 +163,10 @@ class CreditsScene extends Phaser.Scene {
 class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
+
+        // Reset score
+        this.score = 0;
+        this.starsCollected = 0;
         
         // Declare class properties
         this.platforms;
@@ -173,12 +177,15 @@ class GameScene extends Phaser.Scene {
         this.scoreText;
         this.cursors;
         this.playerColorIndex = 0;
-        this.playerColors = [0xff0000, 0xffa500, 0xffff00, 0x00ff00, 0x0000ff, 0x4b0082, 0xee82ee]; // Colors in RGB format
+        this.playerColors = [0xff0000, 0xffa500, 0xffff00, 0x00ff00, 0x0000ff, 0x4b0082, 0xee82ee];
         this.starsCollected = 0;
         this.coinSound;
         this.jumpSound;
         this.bombSound;
         this.bgm;
+        this.retryButton;
+        this.menuButton;
+        this.gameOverImage;
     }
 
     preload() {
@@ -188,6 +195,9 @@ class GameScene extends Phaser.Scene {
         this.load.image("star", "assets/img/star.png");
         this.load.image("bomb", "assets/img/bomb.png");
         this.load.spritesheet("dude", "assets/img/dude.png", { frameWidth: 32, frameHeight: 48 });
+        this.load.image("button_retry", "assets/img/button_retry.png");
+        this.load.image("button_menu", "assets/img/button_menu.png");
+        this.load.image("text_game_over", "assets/img/text_game over.png");
 
         // Load audio
         this.load.audio("coinSound", "assets/mp3/Mario coin sfx.mp3");
@@ -199,6 +209,10 @@ class GameScene extends Phaser.Scene {
     create() {
         this.physics.world.createDebugGraphic();
 
+        // Add background
+        this.add.image(0, 0, "bg").setOrigin(0, 0);
+        
+        
         // Add audio
         this.coinSound = this.sound.add("coinSound");
         this.jumpSound = this.sound.add("jumpSound");
@@ -207,12 +221,9 @@ class GameScene extends Phaser.Scene {
         this.bgm.play();
 
         // Audio volume
-        this.coinSound.setVolume(0.25);
-        this.jumpSound.setVolume(0.25);
-        this.bombSound.setVolume(0.5); 
-        
-        // Add background image
-        this.add.image(0, 0, "bg").setOrigin(0, 0);
+        this.coinSound.setVolume(0.15);
+        this.jumpSound.setVolume(0.15);
+        this.bombSound.setVolume(0.75); 
 
         // Add platforms
         this.platforms = this.physics.add.staticGroup();
@@ -225,28 +236,34 @@ class GameScene extends Phaser.Scene {
         this.player = this.physics.add.sprite(100, 450, "dude");
         this.player.setBounce(0.2);
         this.player.setCollideWorldBounds(true);
-        this.player.setTint(this.playerColors[this.playerColorIndex]);
+        this.player.setTint(this.playerColors[0]);
 
-        // Player movement animations
-        this.anims.create({
-            key: "left",
-            frames: this.anims.generateFrameNumbers("dude", { start: 0, end: 3 }),
-            frameRate: 10,
-            repeat: -1
-        });
+        // Player movement animations 
+        if (!this.anims.get("left")) {
+            this.anims.create({
+                key: "left",
+                frames: this.anims.generateFrameNumbers("dude", { start: 0, end: 3 }),
+                frameRate: 10,
+                repeat: -1
+            });
+        }
 
-        this.anims.create({
-            key: "turn",
-            frames: [{ key: "dude", frame: 4 }],
-            frameRate: 20
-        });
+        if (!this.anims.get("turn")) {
+            this.anims.create({
+                key: "turn",
+                frames: [{ key: "dude", frame: 4 }],
+                frameRate: 20
+            });
+        }
 
-        this.anims.create({
-            key: "right",
-            frames: this.anims.generateFrameNumbers("dude", { start: 5, end: 8 }),
-            frameRate: 10,
-            repeat: -1
-        });
+        if (!this.anims.get("right")) {
+            this.anims.create({
+                key: "right",
+                frames: this.anims.generateFrameNumbers("dude", { start: 5, end: 8 }),
+                frameRate: 10,
+                repeat: -1
+            });
+        }
 
         // Add stars
         this.stars = this.physics.add.group({
@@ -264,15 +281,17 @@ class GameScene extends Phaser.Scene {
         // Add bombs
         this.bombs = this.physics.add.group();
 
-        // Add score text
+        // Add score
         this.scoreText = this.add.text(16, 16, "Stars Collected: 0", { fontSize: "20px", fill: "#FFF" });
+        this.score = 0;
+        this.starsCollected = 0;
 
         // Colliders
         this.physics.add.collider(this.player, this.platforms);
         this.physics.add.collider(this.stars, this.platforms);
         this.physics.add.collider(this.bombs, this.platforms);
-        this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
         this.physics.add.overlap(this.player, this.bombs, this.hitBomb, null, this);
+        this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this);
 
         // Cursors
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -307,7 +326,7 @@ class GameScene extends Phaser.Scene {
         this.coinSound.play();
 
         this.starsCollected++;
-        if (this.starsCollected % 10 === 0) {
+        if (this.starsCollected % 5 === 0) {
             this.spawnBomb();
             this.increasePlayerSize();
         }
@@ -341,92 +360,120 @@ class GameScene extends Phaser.Scene {
         this.player.setScale(this.player.scaleX + 0.1, this.player.scaleY + 0.1);
     }
 
+    addHoverEffect(button) {
+        button.on("pointerover", () => {
+            button.setTint(0x828282); 
+        });
+
+        button.on("pointerout", () => {
+            button.clearTint();
+        });
+    }
+
+    addClickSound(button) {
+        button.on("pointerup", () => {
+            this.sound.play("buttonSound");
+        });
+    }
+
     hitBomb(player, bomb) {
+        if (this.gameOverImage) {
+            return;
+        }
+    
         // Make player invisible
         this.player.setVisible(false);
-
+    
         // Play bomb sound effect
         this.bombSound.play();
-
+    
         // Disable bomb physics body
         bomb.disableBody(true, true);
+    
+        // Add "GAME OVER" image
+        this.gameOverImage = this.add.image(this.game.config.width / 2, this.game.config.height / 2, "text_game_over");
+        this.gameOverImage.setScale(0.75);
+        this.gameOverImage.setOrigin(0.5, 1);
+        this.gameOverImage.setDepth(1);
+    
+        // Add retry button
+        if (!this.retryButton) {
+            this.retryButton = this.add.image(this.game.config.width / 2, this.game.config.height / 2 + 100, "button_retry");
+            this.retryButton.setOrigin(-0.25, 0.5);
+            this.retryButton.setInteractive();
+            this.retryButton.setScale(0.15);
+            this.retryButton.setDepth(1);
+            this.addHoverEffect(this.retryButton);
+            this.addClickSound(this.retryButton);
+            this.retryButton.on("pointerup", () => this.restartGame());
+        }
+    
+        // Add menu button
+        if (!this.menuButton) {
+            this.menuButton = this.add.image(this.game.config.width / 2, this.game.config.height / 2 + 200, "button_menu");
+            this.menuButton.setOrigin(1.25, 1.55);
+            this.menuButton.setInteractive();
+            this.menuButton.setScale(0.15);
+            this.menuButton.setDepth(1);
+            this.addHoverEffect(this.menuButton);
+            this.addClickSound(this.menuButton);
+            this.menuButton.on("pointerup", () => this.returnToMenu());
+        }
+    }
+    
+    restartGame() {
+        // Reset player features
+        this.player.setVisible(true);
+        this.player.setX(100);
+        this.player.setY(450);
+        this.player.setScale(1);
+        this.playerColorIndex = 0;
+    
+        // Reset score
+        this.score = 0;
+        this.starsCollected = 0;
+        this.scoreText.setText("Stars Collected: " + this.score);
+    
+        // Remove "GAME OVER" image and buttons
+        if (this.gameOverImage) {
+            this.gameOverImage.destroy();
+            this.gameOverImage = null;
+        }
+        
+        if (this.retryButton) {
+            this.retryButton.destroy();
+            this.retryButton = null;
+        }
+    
+        if (this.menuButton) {
+            this.menuButton.destroy();
+            this.menuButton = null;
+        }
+    
+        // Remove bombs and stars
+        this.bombs.clear(true, true);
 
-        // Display "GAME OVER" text
-        let gameOverText = this.add.text(this.game.config.width / 2, this.game.config.height / 2, "GAME OVER", {
-            fontSize: "50px",
-            fill: "#fff",
-            align: "center",
-            fontWeight: 'bold'
-        });
-        gameOverText.setOrigin(0.5);
-
-        // Add restart button
-        let restartButton = this.add.text(this.game.config.width / 2, this.game.config.height / 2 + 100, "Restart", {
-            fontSize: "25px",
-            fill: "#bf0000",
-            align: "center",
-            fontWeight: 'bold',
-            padding: {
-                x: 10,
-                y: 10
-            },
-            backgroundColor: "#f00"
-        });
-        restartButton.setOrigin(0.5);
-        restartButton.setInteractive();
-
-        restartButton.on("pointerover", () => {
-            // Change button style on hover
-            restartButton.setStyle({
-                fill: "#000",
-                backgroundColor: "#800000",
-                padding: {
-                    x: 12,
-                    y: 12
-                }
-            });
-        });
-
-        restartButton.on("pointerout", () => {
-            // Revert button style when not hovered
-            restartButton.setStyle({
-                fill: "#fff",
-                backgroundColor: "#f00",
-                padding: {
-                    x: 10,
-                    y: 10
-                }
-            });
-        });
-
-        restartButton.on("pointerup", () => {
-            // Reset player position
-            this.player.setVisible(true);
-            this.player.setX(100);
-            this.player.setY(450);
-
-            // Reset player size
-            this.player.setScale(1);
-
-            // Reset score
-            this.score = 0;
-            this.scoreText.setText("Stars Collected: " + this.score);
-
-            // Remove "GAME OVER" text and restart button
-            gameOverText.destroy();
-            restartButton.destroy();
-
-            // Remove bombs from the scene
-            this.bombs.clear(true, true);
-        });
+        // Spawn stars
+        this.spawnStar();
+    }
+    
+    returnToMenu() {
+        if (this.bgm){
+            this.bgm.stop();
+        }
+        this.restartGame();
+        this.scene.start('StartScene');
     }
 }
 
-// Create the game configuration
 let config = {
     type: Phaser.AUTO,
     width: 1024,
     height: 640,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
     physics: {
         default: "arcade",
         arcade: {
@@ -434,8 +481,7 @@ let config = {
             debug: false
         }
     },
-    scene: [StartScene, GameScene, CreditsScene] // Add StartScene and GameScene to the game scenes
+    scene: [StartScene, GameScene, CreditsScene]
 };
 
-// Initialize the game with the configuration
 let game = new Phaser.Game(config);
